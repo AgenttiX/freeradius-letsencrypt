@@ -1,0 +1,8 @@
+mschap {
+    use_mppe = yes
+    require_encryption = yes
+    require_strong = yes
+
+    ntlm_auth = "/usr/bin/ntlm_auth --request-nt-key --allow-mschapv2 --username=%{%{Stripped-User-Name}:-%{%{User-Name}:-None}} --domain=%{mschap:NT-Domain} --challenge=%{%{mschap:Challenge}:-00} --nt-response=%{%{mschap:NT-Response}:-00}"
+    with_ntdomain_hack = yes
+}

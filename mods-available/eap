@@ -1,0 +1,26 @@
+eap {
+    default_eap_type = peap
+
+    tls-config tls-common {
+        private_key_password = whatever
+        private_key_file = /etc/ssl/private/ssl-cert-snakeoil.key
+        certificate_file = /etc/ssl/certs/ssl-cert-snakeoil.pem
+        ca_file = /etc/ssl/certs/ca-certificates.crt
+        ca_path = ${cadir}
+
+        cipher_list = "DEFAULT"
+        tls_min_version = "1.2"
+        ecdh_curve = ""
+
+        ocsp {
+            enable = yes
+        }
+    }
+    peap {
+        tls = tls-common
+        default_eap_type = mschapv2
+        virtual_server = "inner-tunnel"
+    }
+    mschapv2 {
+    }
+}
