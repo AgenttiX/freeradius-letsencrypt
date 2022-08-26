@@ -19,16 +19,19 @@ if [ ! -f "${CLIENTS_CONF}.bak" ]; then
 fi
 
 echo "Copying clients.conf"
-cp "${SCRIPT_DIR}/clients.conf" "${CONF_DIR}"
+if [ ! -f "${CLIENTS_CONF}.bak" ]; then
+  cp "${CLIENTS_CONF}" "${CLIENTS_CONF}.bak"
+fi
+cp "${SCRIPT_DIR}/clients.conf" "${CLIENTS_CONF}"
 chown root:root "${CLIENTS_CONF}"
 chmod 600 "${CLIENTS_CONF}"
 
 echo "Copying module configs"
-if [ ! -f "${CLIENTS_CONF}/eap.bak" ]; then
-  cp "${CLIENTS_CONF}/eap" "${CLIENTS_CONF}/eap.bak"
+if [ ! -f "${MODS_AVAILABLE}/eap.bak" ]; then
+  cp "${MODS_AVAILABLE}/eap" "${MODS_AVAILABLE}/eap.bak"
 fi
-if [ ! -f "${CLIENTS_CONF}/mschap.bak" ]; then
-  cp "${CLIENTS_CONF}/mschap" "${CLIENTS_CONF}/mschap.bak"
+if [ ! -f "${MODS_AVAILABLE}/mschap.bak" ]; then
+  cp "${MODS_AVAILABLE}/mschap" "${MODS_AVAILABLE}/mschap.bak"
 fi
 cp "${SCRIPT_DIR}/mods-available/*" "${MODS_AVAILABLE}"
 chown root:root -R "${MODS_AVAILABLE}"
