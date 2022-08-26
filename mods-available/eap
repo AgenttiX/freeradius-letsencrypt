@@ -2,15 +2,17 @@ eap {
     default_eap_type = peap
 
     tls-config tls-common {
-        private_key_password = whatever
-        private_key_file = /etc/ssl/private/ssl-cert-snakeoil.key
-        certificate_file = /etc/ssl/certs/ssl-cert-snakeoil.pem
+        # private_key_password = whatever
+        private_key_file = /etc/letsencrypt/live/YOUR_SERVER_NAME/privkey.pem
+        certificate_file = /etc/letsencrypt/live/YOUR_SERVER_NAME/fullchain.pem
         ca_file = /etc/ssl/certs/ca-certificates.crt
         ca_path = ${cadir}
 
-        cipher_list = "DEFAULT"
+        # You can see the list of ciphers with "openssl ciphers DEFAULT"
+        # cipher_list = "DEFAULT"
+        cipher_list = "HIGH"
         tls_min_version = "1.2"
-        ecdh_curve = ""
+        ecdh_curve = "secp384r1"
 
         ocsp {
             enable = yes
