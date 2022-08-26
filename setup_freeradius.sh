@@ -26,7 +26,7 @@ cp "${SCRIPT_DIR}/clients.conf" "${CLIENTS_CONF}"
 chown freerad:freerad "${CLIENTS_CONF}"
 chmod 640 "${CLIENTS_CONF}"
 
-echo "Copying module configs"
+echo "Copying module configs."
 if [ ! -f "${MODS_AVAILABLE}/eap.bak" ]; then
   cp "${MODS_AVAILABLE}/eap" "${MODS_AVAILABLE}/eap.bak"
 fi
@@ -39,6 +39,11 @@ chmod 640 "${MODS_AVAILABLE}"/*
 
 freeradius -C -X
 
+echo "Creating Certbot deploy hook."
+cp "${SCRIPT_DIR}/freeradius_deploy_hook.sh" "/etc/letsencrypt/renewal-hooks/deploy"
+chmod 755 "/etc/letsencrypt/renewal-hooks/deploy/freeradius_deploy_hook.sh"
+
+echo "Configuring ufw firewall."
 ufw allow ssh
 ufw allow radius
 ufw enable
