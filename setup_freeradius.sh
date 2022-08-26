@@ -23,8 +23,8 @@ if [ ! -f "${CLIENTS_CONF}.bak" ]; then
   cp "${CLIENTS_CONF}" "${CLIENTS_CONF}.bak"
 fi
 cp "${SCRIPT_DIR}/clients.conf" "${CLIENTS_CONF}"
-chown root:root "${CLIENTS_CONF}"
-chmod 600 "${CLIENTS_CONF}"
+chown freerad:freerad "${CLIENTS_CONF}"
+chmod 640 "${CLIENTS_CONF}"
 
 echo "Copying module configs"
 if [ ! -f "${MODS_AVAILABLE}/eap.bak" ]; then
@@ -33,9 +33,9 @@ fi
 if [ ! -f "${MODS_AVAILABLE}/mschap.bak" ]; then
   cp "${MODS_AVAILABLE}/mschap" "${MODS_AVAILABLE}/mschap.bak"
 fi
-cp -r "${SCRIPT_DIR}/mods-available/." "${MODS_AVAILABLE}/"
-chown root:root -R "${MODS_AVAILABLE}"
-chmod 600 "${MODS_AVAILABLE}/*"
+cp -r "${SCRIPT_DIR}/mods-available"/* "${MODS_AVAILABLE}/"
+chown freerad:freerad -R "${MODS_AVAILABLE}"
+chmod 640 "${MODS_AVAILABLE}"/*
 
 freeradius -C -X
 
