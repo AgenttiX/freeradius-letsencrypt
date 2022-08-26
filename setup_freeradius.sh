@@ -33,7 +33,7 @@ fi
 if [ ! -f "${MODS_AVAILABLE}/mschap.bak" ]; then
   cp "${MODS_AVAILABLE}/mschap" "${MODS_AVAILABLE}/mschap.bak"
 fi
-cp "${SCRIPT_DIR}/mods-available/*" "${MODS_AVAILABLE}"
+cp "${SCRIPT_DIR}/mods-available/." "${MODS_AVAILABLE}/"
 chown root:root -R "${MODS_AVAILABLE}"
 chmod 600 "${MODS_AVAILABLE}/*"
 
