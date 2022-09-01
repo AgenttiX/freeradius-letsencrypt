@@ -4,18 +4,25 @@ eap {
     tls-config tls-common {
         # private_key_password = whatever
         private_key_file = /etc/letsencrypt/live/YOUR_SERVER_NAME/privkey.pem
-        certificate_file = /etc/letsencrypt/live/YOUR_SERVER_NAME/fullchain.pem
-        ca_file = /etc/ssl/certs/ca-certificates.crt
-        ca_path = ${cadir}
+        certificate_file = /etc/letsencrypt/live/YOUR_SERVER_NAME/cert.pem
+        # This would cause the error
+        # "eap_peap: ERROR: (TLS) Alert read:fatal:certificate expired"
+        # when connecting from Android using system certificates.
+        # https://www.reddit.com/r/sysadmin/comments/pyv7sa/freeradius_affected_by_lets_encrypt_certificate/
+        # ca_file = /etc/ssl/certs/ca-certificates.crt
+        # ca_file = /etc/letsencrypt/live/wifi.vexlum.fi/fullchain.pem
+        ca_file = /etc/letsencrypt/live/YOUR_SERVER_NAME/fullchain.pem
+        # ca_path = ${cadir}
 
         # You can see the list of ciphers with "openssl ciphers DEFAULT"
         # cipher_list = "DEFAULT"
         cipher_list = "HIGH"
         tls_min_version = "1.2"
-        ecdh_curve = "secp384r1"
+        ecdh_curve = ""
+        # ecdh_curve = "secp384r1"
 
         ocsp {
-            enable = yes
+            # enable = yes
         }
     }
     peap {
