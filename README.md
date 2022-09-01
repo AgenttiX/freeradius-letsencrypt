@@ -8,8 +8,10 @@ Therefore, there is probably an issue with the certificate.
 ## Instructions
 - Join the server to the domain with Samba as usual
   (see the instructions at [agx.fi](https://agx.fi/it/active_directory.html))
-- Modify the config files in this repo as needed
+- Install Certbot
+- Clone this repo and modify its config files as needed
 - Run `setup_freeradius.sh`
+- Get a Let's Encrypt certificate using Certbot
 
 ## Client settings
 
