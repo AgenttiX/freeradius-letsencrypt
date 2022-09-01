@@ -2,7 +2,8 @@
 
 TODO: Android and Linux clients work,
 but Windows doesn't when using the log-in credentials,
-probably due to certificate validation issues.
+unless certificate validation is disabled.
+Therefore, there is probably an issue with the certificate.
 
 ## Instructions
 - Join the server to the domain with Samba as usual
