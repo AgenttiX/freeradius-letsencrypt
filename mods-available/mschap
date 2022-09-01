@@ -3,6 +3,13 @@ mschap {
     require_encryption = yes
     require_strong = yes
 
-    ntlm_auth = "/usr/bin/ntlm_auth --request-nt-key --allow-mschapv2 --username=%{%{Stripped-User-Name}:-%{%{User-Name}:-None}} --domain=%{mschap:NT-Domain} --challenge=%{%{mschap:Challenge}:-00} --nt-response=%{%{mschap:NT-Response}:-00}"
+    ntlm_auth = "/usr/bin/ntlm_auth --request-nt-key --allow-mschapv2 --username=%{%{mschap:User-Name}:-None} --challenge=%{%{mschap:Challenge}:-00} --nt-response=%{%{mschap:NT-Response}:-00} --domain=%{mschap:NT-Domain}"
+    # This does not work with Windows clients when the "Automatically use my Windows logon name and password (and domain if any)" setting is enabled.
+    # https://freeradius-users.freeradius.narkive.com/nJ3zj8qB/with-ntdomain-hack#post4
+    # --username=%{%{Stripped-User-Name}:-%{%{User-Name}:-None}}
+    # You should be able to specify a default domain name with
+    # --domain=%{%{mschap:NT-Domain}:-YOUR_DOMAIN_NAME}
+
+    # This should help with the formatting
     with_ntdomain_hack = yes
 }
