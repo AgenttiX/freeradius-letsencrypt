@@ -37,13 +37,31 @@ cp -r "${SCRIPT_DIR}/mods-available"/* "${MODS_AVAILABLE}/"
 chown freerad:freerad -R "${MODS_AVAILABLE}"
 chmod 640 "${MODS_AVAILABLE}"/*
 
+# echo "Downloading Let's Encrypt root certificate."
+# wget -O "${CONF_DIR}/certs/isrgrootx1.pem" "https://letsencrypt.org/certs/isrgrootx1.pem"
+# chown freerad:freerad "${CONF_DIR}/certs/isrgrootx1.pem"
+# chmod 644 "${CONF_DIR}/certs/isrgrootx1.pem"
+
+echo "Copying Let's encrypt configs."
+cp "${SCRIPT_DIR}/letsencrypt/cli.ini" "/etc/letsencrypt/cli.ini"
+chown root:root "/etc/letsencrypt/cli.ini"
+chmod 755 "/etc/letsencrypt/cli.ini"
+cp "${SCRIPT_DIR}/letsencrypt/freeradius_deploy_hook.sh" "/etc/letsencrypt/renewal-hooks/deploy"
+chown root:root "/etc/letsencrypt/renewal-hooks/deploy"
+chmod 755 "/etc/letsencrypt/renewal-hooks/deploy/freeradius_deploy_hook.sh"
+
 freeradius -C -X
 
-echo "Creating Certbot deploy hook."
-cp "${SCRIPT_DIR}/freeradius_deploy_hook.sh" "/etc/letsencrypt/renewal-hooks/deploy"
-chmod 755 "/etc/letsencrypt/renewal-hooks/deploy/freeradius_deploy_hook.sh"
+echo "Fixing winbind permissions"
+# https://freeradius-users.freeradius.narkive.com/4ScMBwo8/reading-winbind-reply-failed-0xc0000001
+usermod -a -G winbindd_priv freerad
 
 echo "Configuring ufw firewall."
 ufw allow ssh
 ufw allow radius
 ufw enable
+
+systemctl enable freeradius.service
+systemctl restart freeradius.service
+systemctl status freeradius.service
+
