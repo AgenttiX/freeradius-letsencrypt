@@ -10,7 +10,7 @@ eap {
         # when connecting from Android using system certificates.
         # https://www.reddit.com/r/sysadmin/comments/pyv7sa/freeradius_affected_by_lets_encrypt_certificate/
         # ca_file = /etc/ssl/certs/ca-certificates.crt
-        # ca_file = /etc/letsencrypt/live/wifi.vexlum.fi/fullchain.pem
+        # ca_file = /etc/letsencrypt/live/YOUR_SERVER_NAME/fullchain.pem
         ca_file = /etc/letsencrypt/live/YOUR_SERVER_NAME/fullchain.pem
         # ca_path = ${cadir}
 
