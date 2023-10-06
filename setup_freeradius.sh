@@ -13,6 +13,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 CONF_DIR="/etc/freeradius/3.0"
 CLIENTS_CONF="${CONF_DIR}/clients.conf"
 MODS_AVAILABLE="${CONF_DIR}/mods-available"
+# SITES_AVAILABLE="${CONF_DIR}/sites-available"
 
 if [ ! -f "${CLIENTS_CONF}.bak" ]; then
   cp "${CLIENTS_CONF}" "${CLIENTS_CONF}.bak"

@@ -5,14 +5,6 @@ but Windows doesn't when using the log-in credentials,
 unless certificate validation is disabled.
 Therefore, there is probably an issue with the certificate.
 
-## Instructions
-- Join the server to the domain with Samba as usual
-  (see the instructions at [agx.fi](https://agx.fi/it/active_directory.html))
-- Install Certbot
-- Clone this repo and modify its config files as needed
-- Run `setup_freeradius.sh`
-- Get a Let's Encrypt certificate using Certbot
-
 ## Client settings
 
 ### Android
@@ -78,6 +70,48 @@ However, some helpful information can be found at
 `Event Viewer -> Applications and Services Logs -> Microsoft -> Windows -> WLAN-AutoConfig -> Operational`.
 
 
+## Server certificate setup for EAP-TLS
+If you're going to use EAP-TLS with domain certificates in addition to the EAP-MSCHAPv2,
+you have to create a certificate for the RADIUS server.
+Set up a NPS/RADIUS certificate template using these
+[NPS server instructions](https://learn.microsoft.com/en-us/windows-server/remote/remote-access/tutorial-aovpn-deploy-create-certificates#create-the-nps-server-authentication-template)
+If you can, use Samba Certificate Auto Enrollment to obtain the server certificate from the CA to the RADIUS server.
+If not, the certificate has to be deployed manually.
+This requires the following exceptions to the Microsoft instructions.
+- Subject Name -> Supply in the request
+  - With this you can request the certificate on a domain member and then transfer it to the RADIUS server.
+- Request Handling -> Allow private key to be exported
+  - This is necessary to export the private key from the CA to the RADIUS server.
+
+When you have set up the certificate template,
+request a certificate for the RADIUS server.
+If you are requesting it on another computer:
+- You have to accept the pending request on the CA at
+  Certification Authority (Local) -> Pending Requests
+- When requesting the certificate, go to the Subject tab and add the FQDN
+  (e.g. your-server.your-domain.com) of the RADIUS server as Subject name -> Common name
+- Once you have accepted the request, you can find the certificate at
+  Certificates (Local Computer) -> Certificate Enrollment Requests -> Certificates.
+- Export the certificate with right-click -> All tasks -> Export...
+- Export the private key as well.
+- Select "Export all extended properties" (just in case).
+- Use AES256-SHA256 encryption with a password.
+- Move the certificate file to the RADIUS server
+- Extract the .pfx package with:
+  - `openssl pkcs12 -in RADIUS_SERVER.pfx -nokeys -out cert.pem`
+  - `openssl pkcs12 -in RADIUS_SERVER.pfx -nocerts -out privkey.pem -nodes`
+- Place the files in e.g. `/etc/freeradius/3.0/certs/`
+
+## Server setup
+- Join the server to the domain with Samba as usual
+  (see the instructions at [agx.fi](https://agx.fi/it/active_directory.html))
+- Install Certbot
+- Clone this repo and modify its config files as needed
+- Set up the server certificate with the instructions below
+- Run `setup_freeradius.sh`
+- Get a Let's Encrypt certificate using Certbot
+
+
 ## WPA3
 [Both WPA2-personal and WPA2-enterprise](https://security.stackexchange.com/questions/171451/is-wpa2-enterprise-affected-by-the-krack-attack)
 are vulnerable to sophisticated attaks such as
@@ -91,6 +125,7 @@ works and only after that upgrade the network to WPA3.
 - [Android 10 or later](https://source.android.com/docs/core/connect/wifi-wpa3-owe) (with WPA3-enabled hardware)
 - [Intel Wireless-AC 9260, AX200 or later](https://www.intel.com/content/www/us/en/support/articles/000054783/wireless.html)
 - [How do we make WPA3 work with Intel® Dual Band Wireless-AC 8260?](https://www.reddit.com/r/intel/comments/rpn8od/how_do_we_make_wpa3_work_with_intel_dual_band/)
+
 
 ## Sources
 The scripts and configuration in this repo are based on these instructions:
