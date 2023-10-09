@@ -85,6 +85,8 @@ if [ "$(grep -c "^\s*check_crl = yes" "${MODS_AVAILABLE}/eap")" -ge 1 ]; then
     echo "The CRL URL was not given. Cannot configure CRL updates. Please give the CRL URL as the first argument."
     echo "The CRL url can be of the form https://ca.yourcompany.com/CertEnroll/Your-Company-CA.crl"
   fi
+else
+  echo "CRL is not enabled in the eap config. Skipping cron job setup."
 fi
 
 systemctl enable freeradius.service

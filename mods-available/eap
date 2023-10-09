@@ -53,6 +53,7 @@ eap {
         # and run "sudo update-ca-certificates".
         # If you want to use a certificate revocation list (CRL),
         # the ca_file must contain both the CA certificate and the CRL.
+        # ca_file = ${certdir}/cacrl.pem
         ca_file = /usr/local/share/ca-certificates/YOUR_CA.cer
 
         # -----
