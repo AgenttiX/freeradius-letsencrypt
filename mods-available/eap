@@ -25,17 +25,20 @@ eap {
         cipher_list = "HIGH"
         # Windows 11 uses TLS 1.3 by default.
         # https://learn.microsoft.com/en-us/windows-server/networking/technologies/extensible-authentication-protocol/windows-11-changes
+        # However, as of 2023, this setting does not yet support the value "1.3".
         tls_min_version = "1.2"
         # When this is empty, OpenSSL will choose the "best" curve for the situation.
         # However, this is often not ideal.
         # https://github.com/openssl/openssl/issues/9748
         # ecdh_curve = ""
+        # The NIST curves are difficult to implement without side-channel vulnerabilities,
+        # but they are the only widely supported ones.
+        # As of 2023, the default is prime256v1, which is not as secure as the widely supported secp384r1.
         ecdh_curve = "secp384r1"
-        check_crl = yes
 
-        ocsp {
-            # enable = yes
-        }
+        # ocsp {
+        #     enable = yes
+        # }
     }
     tls-config tls-domain {
         # -----
@@ -47,8 +50,10 @@ eap {
         certificate_file = ${certdir}/cert.pem
         # If you want other services to trust this CA as well, place it in
         # "/usr/local/share/ca-certificates/"
-        # and run "sudo update-ca-certificates"
-        ca_file = /usr/local/share/ca-certificates/YOUR_CA.crt
+        # and run "sudo update-ca-certificates".
+        # If you want to use a certificate revocation list (CRL),
+        # the ca_file must contain both the CA certificate and the CRL.
+        ca_file = /usr/local/share/ca-certificates/YOUR_CA.cer
 
         # -----
         # Security hardening
@@ -57,7 +62,8 @@ eap {
         cipher_list = "HIGH"
         tls_min_version = "1.2"
         ecdh_curve = "secp384r1"
-        check_crl = yes
+        # https://wiki.alpinelinux.org/wiki/FreeRadius_EAP-TLS_configuration#Certificate_Revocation_List
+        # check_crl = yes
     }
     tls {
         tls = tls-domain

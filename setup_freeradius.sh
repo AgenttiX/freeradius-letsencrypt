@@ -7,10 +7,11 @@ if [ "${EUID}" -ne 0 ]; then
 fi
 
 apt-get update
-apt-get install freeradius
+apt-get install freeradius wget
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 CONF_DIR="/etc/freeradius/3.0"
+CERTS_DIR="${CONF_DIR}/certs"
 CLIENTS_CONF="${CONF_DIR}/clients.conf"
 MODS_AVAILABLE="${CONF_DIR}/mods-available"
 # SITES_AVAILABLE="${CONF_DIR}/sites-available"
@@ -36,6 +37,7 @@ if [ ! -f "${MODS_AVAILABLE}/mschap.bak" ]; then
 fi
 cp -r "${SCRIPT_DIR}/mods-available"/* "${MODS_AVAILABLE}/"
 chown freerad:freerad -R "${MODS_AVAILABLE}"
+chown freerad:freerad -R "${CERTS_DIR}"
 chmod 640 "${MODS_AVAILABLE}"/*
 
 # echo "Downloading Let's Encrypt root certificate."
@@ -57,12 +59,34 @@ echo "Fixing winbind permissions"
 # https://freeradius-users.freeradius.narkive.com/4ScMBwo8/reading-winbind-reply-failed-0xc0000001
 usermod -a -G winbindd_priv freerad
 
+echo "Reloading system certificates"
+update-ca-certificates
+
 echo "Configuring ufw firewall."
 ufw allow ssh
 ufw allow radius
 ufw enable
 
+CERT_FILE="${CERTS_DIR}/cert.pem"
+if [ -f "${CERT_FILE}" ]; then
+  echo "Server certificate fingerprint: (you can verify this on a Windows client with \"netsh wlan show wlanreport\")"
+  openssl x509 -noout -fingerprint -in "${CERT_FILE}"
+else
+  echo "The server certificate was not (yet) found."
+fi
+
+if [ "$(grep -c "^\s*check_crl = yes" "${MODS_AVAILABLE}/eap")" -ge 1 ]; then
+  echo "CRL seems to be enabled in the eap config. Configuring cron job for CRL updates."
+  if [ "$#" -eq 1 ]; then
+    UPDATER="/etc/cron.daily/update_freeradius_crl.sh"
+    cp "${SCRIPT_DIR}/update_freeradius_crl.sh" "${UPDATER}"
+    sed -i "s@REPLACE_THIS_VALUE@${1}@g" "${UPDATER}"
+  else
+    echo "The CRL URL was not given. Cannot configure CRL updates. Please give the CRL URL as the first argument."
+    echo "The CRL url can be of the form https://ca.yourcompany.com/CertEnroll/Your-Company-CA.crl"
+  fi
+fi
+
 systemctl enable freeradius.service
 systemctl restart freeradius.service
 systemctl status freeradius.service
-

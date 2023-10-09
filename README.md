@@ -1,16 +1,11 @@
 # FreeRADIUS with a Let's Encrypt certificate
 
-TODO: Android and Linux clients work,
-but Windows doesn't when using the log-in credentials,
-unless certificate validation is disabled.
-Therefore, there is probably an issue with the certificate.
-
-## Client settings
+## Client settings for Let's Encrypt + PEAP-MSCHAPv2
 
 ### Android
 - Security: WPA/WPA2/WPA3-Enterprise
 - EAP method: PEAP
-- Phase 2 authentication: MSCHAPV2
+- Phase 2 authentication: MSCHAPv2
 - CA certificate: Use system certificates
 - Online certificate status: Request certificate status
   - This means enabling Online Certificate Status Protocol (OCSP)
@@ -18,6 +13,7 @@ Therefore, there is probably an issue with the certificate.
 - Domain: FQDN of the RADIUS server, e.g. wifi.your-domain.com
 - Identity: your-username@your-domain.com
 - Anonymous identity: anonymous@your-domain.com
+
 
 ### Kubuntu / KDE
 - Security: WPA/WPA2 Enterprise
@@ -29,7 +25,11 @@ Therefore, there is probably an issue with the certificate.
 - Inner authentication: MSCHAPv2
 - Username: your-username@your-domain.com
 
+
 ### Windows
+So far I haven't been able to get Windows to properly accept the Let's Encrypt root certificate,
+which is required by this configuration.
+
 The group policy folder for Wi-Fi networks is
 `Computer Configuration -> Policies -> Windows Settings -> Security Settings -> Wireless Network (IEEE 802.11) Policies`.
 Right-click it and select `Create A New Wireless Network Policy for Windows Vista and Later Releases`.
@@ -38,7 +38,9 @@ Note that edits to the Wi-Fi networks may not be propagated to clients unless yo
 and then run `gpupdate /force` on all clients before adding it again.
 The settings on an individual client are equally painful to manage, as
 [Windows does not allow editing an existing connection](https://social.technet.microsoft.com/Forums/en-US/37bc5304-4dcf-4615-a079-a3dbf56a7162/how-do-i-change-a-wpa2enterprise-wireless-networks-saved-password-in-windows-10-without-first).
-In the profile, set these settings:
+In the group policy, set these settings:
+
+In the group policy, set these settings:
 - For WPA2
   - Authentication: WPA2-Enterprise
   - Encryption: Try first with AES-CCMP if you can't explicily enable AES-GCMP in the settings of your Wi-Fi network.
@@ -46,7 +48,7 @@ In the profile, set these settings:
 - For WPA3
   - Authentication: WPA3-Enterprise 192 Bits
   - Encryption: AES-GCMP-256
-- Authentication method: Microsoft: Protected EAP (PEAP)
+- Authentication method: `Microsoft: Protected EAP (PEAP)`
 - Properties
   - Verify the server's identity by validating the certificate: yes
   - Connect to these servers: The FQDN of your certificate
@@ -68,6 +70,41 @@ These settings are painful to debug, as any error in the configuration can resul
 "Can't connect to this network".
 However, some helpful information can be found at
 `Event Viewer -> Applications and Services Logs -> Microsoft -> Windows -> WLAN-AutoConfig -> Operational`.
+
+
+## Client settings for EAP-TLS (client certificates)
+
+### Android
+Not tested yet, as distributing certificates from Active Directory to non-Windows clients is a pain.
+
+### Kubuntu / KDE
+Not tested yet, as distributing certificates from Active Directory to non-Windows clients is a pain.
+Theoretically it should be possible with
+[Samba Certificate Auto Enrollment](https://wiki.samba.org/index.php/Certificate_Auto_Enrollment), though,
+but it's a pain to set up.
+
+### Windows
+You can use certificate auto enrollment to deploy the certificates from Active Directory Certificate Services to clients automatically.
+The exact settings are beyond the scope of these instructions, but you can use the tutorials below as a reference.
+I recommend storing the client certificate on a TPM and enabling TPM key attestation.
+- [Tutorial: Deploy Always On VPN - Configure Certificate Authority templates](https://learn.microsoft.com/en-us/windows-server/remote/remote-access/tutorial-aovpn-deploy-create-certificates)
+- [Configure the Workstation Authentication Certificate Template](https://learn.microsoft.com/en-us/windows/security/operating-system-security/network-security/windows-firewall/configure-the-workstation-authentication-certificate-template)
+- [Using certificates in Remote Desktop Services](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/dn781533(v=ws.11))
+
+Set the group policy settings as for the EAP-MSCHAPv2 authentication, but with these different settings for authentication:
+- Authentication method: `Microsoft: Smart Card or other certificate`
+- Authentication mode: `User or Computer authentication`
+  (Or only one of these, depending on whether you are distributing user and/or computer certificates to clients.)
+- Properties
+  - When connecting
+    - Use a certificate on this computer: yes
+    - Use simple certificate selection: yes
+    - Advanced: select only your own CA
+  - Verify the server's identity by validating the certificate: yes
+    - Connect these servers: FQDN of the RADIUS server, as in the CN of the server certificate
+    - Trusted Root Certification Authorities: Select only your own CA
+    - Don't prompt user to authorize new servers or trusted certification authorities: yes
+      (unless you're debugging issues)
 
 
 ## Server certificate setup for EAP-TLS
@@ -94,13 +131,23 @@ If you are requesting it on another computer:
   Certificates (Local Computer) -> Certificate Enrollment Requests -> Certificates.
 - Export the certificate with right-click -> All tasks -> Export...
 - Export the private key as well.
-- Select "Export all extended properties" (just in case).
+- (Select "Export all extended properties" (just in case)).
 - Use AES256-SHA256 encryption with a password.
-- Move the certificate file to the RADIUS server
+- Move the certificate file to the RADIUS server.
 - Extract the .pfx package with:
   - `openssl pkcs12 -in RADIUS_SERVER.pfx -nokeys -out cert.pem`
   - `openssl pkcs12 -in RADIUS_SERVER.pfx -nocerts -out privkey.pem -nodes`
 - Place the files in e.g. `/etc/freeradius/3.0/certs/`
+
+If you get the error 2148204809 or 0x800B0109,
+ensure that the server certificate is signed by the correct CA.
+The Active Directory Certificate Authority can sometimes create certificates
+with an invalid issuer that is the CN of the certificate instead fo the correct CA.
+
+When debugging errors with the configuration,
+see /var/log/freeradius/radius.log on the server,
+and "netsh wlan show wlanreport" on the Windows client.
+
 
 ## Server setup
 - Join the server to the domain with Samba as usual
