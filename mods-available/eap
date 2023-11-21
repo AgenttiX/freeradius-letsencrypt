@@ -69,6 +69,7 @@ eap {
     tls {
         tls = tls-domain
     }
+    # To disable EAP-PEAP, comment out this section
     peap {
         tls = tls-letsencrypt
         default_eap_type = mschapv2

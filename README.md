@@ -127,16 +127,21 @@ If you are requesting it on another computer:
   Certification Authority (Local) -> Pending Requests
 - When requesting the certificate, go to the Subject tab and add the FQDN
   (e.g. your-server.your-domain.com) of the RADIUS server as Subject name -> Common name
-- Once you have accepted the request, you can find the certificate at
+- Once you have accepted the request, you can find the private key at
   Certificates (Local Computer) -> Certificate Enrollment Requests -> Certificates.
-- Export the certificate with right-click -> All tasks -> Export...
-- Export the private key as well.
-- (Select "Export all extended properties" (just in case)).
+  If this certificate is not signed by the correct CA, you can find the signed public certificate at
+  Certification Authority (Local) -> your CA -> Issued Certificates.
+- Export the certificate(s) with right-click -> All tasks -> Export...
+- When exporting the certificate that has the private key,
+  select to export the private key as well.
+- (Select "Export all extended properties", just in case.)
 - Use AES256-SHA256 encryption with a password.
 - Move the certificate file to the RADIUS server.
 - Extract the .pfx package with:
-  - `openssl pkcs12 -in RADIUS_SERVER.pfx -nokeys -out cert.pem`
   - `openssl pkcs12 -in RADIUS_SERVER.pfx -nocerts -out privkey.pem -nodes`
+  - If the pfx package also has the correctly signed public key
+    (may not be the case with a manually approved Active Directory certificate):
+    `openssl pkcs12 -in RADIUS_SERVER.pfx -nokeys -out cert.pem`
 - Place the files in e.g. `/etc/freeradius/3.0/certs/`
 
 If you get the error 2148204809 or 0x800B0109,
@@ -152,7 +157,7 @@ and "netsh wlan show wlanreport" on the Windows client.
 ## Server setup
 - Join the server to the domain with Samba as usual
   (see the instructions at [agx.fi](https://agx.fi/it/active_directory.html))
-- Install Certbot
+- Copy the public domain CA certificate to `/usr/local/share/ca-certificates/CA_NAME.cer`
 - Clone this repo and modify its config files as needed
 - Set up the server certificate with the instructions below
 - Run `setup_freeradius.sh`

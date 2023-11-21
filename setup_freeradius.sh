@@ -25,12 +25,14 @@ apt-get install freeradius snapd wget
 # https://certbot.eff.org/instructions?ws=other&os=ubuntufocal&tab=wildcard
 echo "Installing Certbot"
 snap install --classic certbot
-ln -s /snap/bin/certbot /usr/bin/certbot
+ln -f -s /snap/bin/certbot /usr/bin/certbot
 snap set certbot trust-plugin-with-root=ok
 # snap install certbot-dns-<PLUGIN>
 
 # Create certbot configuration folder
+set +e
 certbot
+set -e
 
 if [ ! -f "${CLIENTS_CONF}.bak" ]; then
   cp "${CLIENTS_CONF}" "${CLIENTS_CONF}.bak"
@@ -91,6 +93,8 @@ ufw enable
 
 CERT_FILE="${CERTS_DIR}/cert.pem"
 if [ -f "${CERT_FILE}" ]; then
+  echo "Server certificate:"
+  openssl x509 -noout -text -in "${CERT_FILE}"
   echo "Server certificate fingerprint: (you can verify this on a Windows client with \"netsh wlan show wlanreport\")"
   openssl x509 -noout -fingerprint -in "${CERT_FILE}"
 else
