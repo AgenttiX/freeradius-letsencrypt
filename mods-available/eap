@@ -7,14 +7,14 @@ eap {
         # Certificate
         # -----
         # private_key_password = whatever
-        private_key_file = /etc/letsencrypt/live/YOUR_SERVER_NAME/privkey.pem
-        certificate_file = /etc/letsencrypt/live/YOUR_SERVER_NAME/cert.pem
+        private_key_file = /etc/letsencrypt/live/CERTBOT_DOMAIN/privkey.pem
+        certificate_file = /etc/letsencrypt/live/CERTBOT_DOMAIN/cert.pem
         # This would cause the error
         # "eap_peap: ERROR: (TLS) Alert read:fatal:certificate expired"
         # when connecting from Android using system certificates.
         # https://www.reddit.com/r/sysadmin/comments/pyv7sa/freeradius_affected_by_lets_encrypt_certificate/
         # ca_file = /etc/ssl/certs/ca-certificates.crt
-        ca_file = /etc/letsencrypt/live/YOUR_SERVER_NAME/fullchain.pem
+        ca_file = /etc/letsencrypt/live/CERTBOT_DOMAIN/fullchain.pem
         # ca_path = ${cadir}
 
         # -----
@@ -54,7 +54,7 @@ eap {
         # If you want to use a certificate revocation list (CRL),
         # the ca_file must contain both the CA certificate and the CRL.
         # ca_file = ${certdir}/cacrl.pem
-        ca_file = /usr/local/share/ca-certificates/YOUR_CA.cer
+        ca_file = /usr/local/share/ca-certificates/CA_NAME.cer
 
         # -----
         # Security hardening

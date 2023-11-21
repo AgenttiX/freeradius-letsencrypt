@@ -6,15 +6,31 @@ if [ "${EUID}" -ne 0 ]; then
    exit 1
 fi
 
-apt-get update
-apt-get install freeradius wget
-
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 CONF_DIR="/etc/freeradius/3.0"
 CERTS_DIR="${CONF_DIR}/certs"
 CLIENTS_CONF="${CONF_DIR}/clients.conf"
 MODS_AVAILABLE="${CONF_DIR}/mods-available"
 # SITES_AVAILABLE="${CONF_DIR}/sites-available"
+
+echo "Loading settings from settings.sh."
+. "${SCRIPT_DIR}/settings.sh"
+
+echo "Installing the required packages."
+apt-get update
+apt-get remove certbot
+apt-get install freeradius snapd wget
+
+# From Certbot installation instructions
+# https://certbot.eff.org/instructions?ws=other&os=ubuntufocal&tab=wildcard
+echo "Installing Certbot"
+snap install --classic certbot
+ln -s /snap/bin/certbot /usr/bin/certbot
+snap set certbot trust-plugin-with-root=ok
+# snap install certbot-dns-<PLUGIN>
+
+# Create certbot configuration folder
+certbot
 
 if [ ! -f "${CLIENTS_CONF}.bak" ]; then
   cp "${CLIENTS_CONF}" "${CLIENTS_CONF}.bak"
@@ -39,6 +55,12 @@ cp -r "${SCRIPT_DIR}/mods-available"/* "${MODS_AVAILABLE}/"
 chown freerad:freerad -R "${MODS_AVAILABLE}"
 chown freerad:freerad -R "${CERTS_DIR}"
 chmod 640 "${MODS_AVAILABLE}"/*
+
+echo "Updating settings to FreeRADIUS configs."
+sed -i "s@RADIUS_IP_RANGE@${RADIUS_IP_RANGE}@g" "${CLIENTS_CONF}"
+sed -i "s@RADIUS_SECRET@${RADIUS_SECRET}@g" "${CLIENTS_CONF}"
+sed -i "s@CERTBOT_DOMAIN@${CERTBOT_DOMAIN}@g" "${MODS_AVAILABLE}/eap"
+sed -i "s@CA_NAME@${CA_NAME}@g" "${MODS_AVAILABLE}/eap"
 
 # echo "Downloading Let's Encrypt root certificate."
 # wget -O "${CONF_DIR}/certs/isrgrootx1.pem" "https://letsencrypt.org/certs/isrgrootx1.pem"
