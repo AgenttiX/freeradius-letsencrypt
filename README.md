@@ -125,8 +125,11 @@ request a certificate for the RADIUS server.
 If you are requesting it on another computer:
 - You have to accept the pending request on the CA at
   Certification Authority (Local) -> Pending Requests
-- When requesting the certificate, go to the Subject tab and add the FQDN
-  (e.g. your-server.your-domain.com) of the RADIUS server as Subject name -> Common name
+- When requesting the certificate, go to the Subject tab and add these properties of the RADIUS server
+  - FQDN (e.g. your-server.your-domain.com) as Subject name -> Common name
+  - FQDN, all other DNS names (e.g. your-server) and all IP addresses as Alternative names -> DNS
+  - All IP addresses as Alternative names -> IP address
+  - Leaving some of these out may result in issues that are difficult to debug
 - Once you have accepted the request, you can find the private key at
   Certificates (Local Computer) -> Certificate Enrollment Requests -> Certificates.
   If this certificate is not signed by the correct CA, you can find the signed public certificate at
