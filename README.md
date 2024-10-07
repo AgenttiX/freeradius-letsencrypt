@@ -111,7 +111,7 @@ Set the group policy settings as for the EAP-MSCHAPv2 authentication, but with t
 If you're going to use EAP-TLS with domain certificates in addition to the EAP-MSCHAPv2,
 you have to create a certificate for the RADIUS server.
 Set up a NPS/RADIUS certificate template using these
-[NPS server instructions](https://learn.microsoft.com/en-us/windows-server/remote/remote-access/tutorial-aovpn-deploy-create-certificates#create-the-nps-server-authentication-template)
+[NPS server instructions](https://learn.microsoft.com/en-us/windows-server/remote/remote-access/tutorial-aovpn-deploy-create-certificates#create-the-nps-server-authentication-template).
 If you can, use Samba Certificate Auto Enrollment to obtain the server certificate from the CA to the RADIUS server.
 If not, the certificate has to be deployed manually.
 This requires the following exceptions to the Microsoft instructions.
@@ -122,23 +122,29 @@ This requires the following exceptions to the Microsoft instructions.
 
 When you have set up the certificate template,
 request a certificate for the RADIUS server.
-If you are requesting it on another computer:
+If you can't request it directly on the machine that runs the RADIUS server:
+- Go to *Certificates (Local Computer) -> Personal -> Certificates*
+- *Right-click -> All Tasks -> Request New Certificate...*
 - You have to accept the pending request on the CA at
-  Certification Authority (Local) -> Pending Requests
+  *Certification Authority (Local) -> Pending Requests*
 - When requesting the certificate, go to the Subject tab and add these properties of the RADIUS server
-  - FQDN (e.g. your-server.your-domain.com) as Subject name -> Common name
-  - FQDN, all other DNS names (e.g. your-server) and all IP addresses as Alternative names -> DNS
-  - All IP addresses as Alternative names -> IP address
+  - FQDN (e.g. your-server.your-domain.com) as *Subject name -> Common name*
+  - FQDN, all other DNS names (e.g. your-server) as *Alternative names -> DNS*
+    and IP addresses as *Alternative names -> IP address*
   - Leaving some of these out may result in issues that are difficult to debug
+- Accept the certificate request at *Certification Authority (Local) -> your CA -> Pending Requests*
+  with *right-click -> All Tasks -> Issue*.
 - Once you have accepted the request, you can find the private key at
-  Certificates (Local Computer) -> Certificate Enrollment Requests -> Certificates.
+  *Certificates (Local Computer) -> Certificate Enrollment Requests -> Certificates*.
   If this certificate is not signed by the correct CA, you can find the signed public certificate at
-  Certification Authority (Local) -> your CA -> Issued Certificates.
-- Export the certificate(s) with right-click -> All tasks -> Export...
-- When exporting the certificate that has the private key,
-  select to export the private key as well.
-- (Select "Export all extended properties", just in case.)
-- Use AES256-SHA256 encryption with a password.
+  *Certification Authority (Local) -> your CA -> Issued Certificates*.
+- Export the certificate(s) with *right-click -> All tasks -> Export...*
+  - When exporting the certificate that has the private key,
+    select to export the private key as well.
+  - For the certificate that has only the signed public key, select Base-64 encoded X.509 (.CER)
+  - For the certificate that has the private key, select Personal Information Exchange - PKCS #12 (.PFX)
+  - (Select "Export all extended properties", just in case.)
+  - Use AES256-SHA256 encryption with a password.
 - Move the certificate file to the RADIUS server.
 - Extract the .pfx package with:
   - `openssl pkcs12 -in RADIUS_SERVER.pfx -nocerts -out privkey.pem -nodes`
@@ -146,6 +152,9 @@ If you are requesting it on another computer:
     (may not be the case with a manually approved Active Directory certificate):
     `openssl pkcs12 -in RADIUS_SERVER.pfx -nokeys -out cert.pem`
 - Place the files in e.g. `/etc/freeradius/3.0/certs/`
+  - Ensure that the files have the same ownership and permissions as the other files in the directory, e.g. with
+    `chown freerad:freerad /etc/freeradius/3.0/certs/*` and
+    `chmod 600 /etc/freeradius/3.0/certs/privkey.pem`.
 
 If you get the error 2148204809 or 0x800B0109,
 ensure that the server certificate is signed by the correct CA.
@@ -153,8 +162,8 @@ The Active Directory Certificate Authority can sometimes create certificates
 with an invalid issuer that is the CN of the certificate instead fo the correct CA.
 
 When debugging errors with the configuration,
-see /var/log/freeradius/radius.log on the server,
-and "netsh wlan show wlanreport" on the Windows client.
+see `/var/log/freeradius/radius.log` on the server,
+and `netsh wlan show wlanreport` on the Windows client.
 
 
 ## Server setup
