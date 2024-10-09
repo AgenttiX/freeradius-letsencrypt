@@ -129,9 +129,12 @@ If you can't request it directly on the machine that runs the RADIUS server:
   *Certification Authority (Local) -> Pending Requests*
 - When requesting the certificate, go to the Subject tab and add these properties of the RADIUS server
   - FQDN (e.g. your-server.your-domain.com) as *Subject name -> Common name*
-  - FQDN, all other DNS names (e.g. your-server) as *Alternative names -> DNS*
-    and IP addresses as *Alternative names -> IP address*
-  - Leaving some of these out may result in issues that are difficult to debug
+  - To use the certificate for FreeRADIUS, you must leave the *Alternative names* field empty,
+    or Windows clients may give the error 0x800B0114 (CERT_E_INVALID_NAME).
+  - If you're going to use the certificate with e.g. StrongSwan instead, you must fill the *Alternative names* field:
+    FQDN, all other DNS names (e.g. your-server) as *Alternative names -> DNS*
+    and IP addresses as *Alternative names -> IP address*.
+    Leaving some of these out may result in issues that are difficult to debug.
 - Accept the certificate request at *Certification Authority (Local) -> your CA -> Pending Requests*
   with *right-click -> All Tasks -> Issue*.
 - Once you have accepted the request, you can find the private key at
@@ -145,7 +148,7 @@ If you can't request it directly on the machine that runs the RADIUS server:
   - For the certificate that has the private key, select Personal Information Exchange - PKCS #12 (.PFX)
   - (Select "Export all extended properties", just in case.)
   - Use AES256-SHA256 encryption with a password.
-- Move the certificate file to the RADIUS server.
+- Move the certificate file(s) to the RADIUS server.
 - Extract the .pfx package with:
   - `openssl pkcs12 -in RADIUS_SERVER.pfx -nocerts -out privkey.pem -nodes`
   - If the pfx package also has the correctly signed public key
@@ -159,7 +162,7 @@ If you can't request it directly on the machine that runs the RADIUS server:
 If you get the error 2148204809 or 0x800B0109,
 ensure that the server certificate is signed by the correct CA.
 The Active Directory Certificate Authority can sometimes create certificates
-with an invalid issuer that is the CN of the certificate instead fo the correct CA.
+with an invalid issuer that is the CN of the certificate instead of the correct CA.
 
 When debugging errors with the configuration,
 see `/var/log/freeradius/radius.log` on the server,
