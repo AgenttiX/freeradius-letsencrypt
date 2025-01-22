@@ -10,11 +10,24 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 CONF_DIR="/etc/freeradius/3.0"
 CERTS_DIR="${CONF_DIR}/certs"
 CLIENTS_CONF="${CONF_DIR}/clients.conf"
+SETTINGS_CONF="${SCRIPT_DIR}/settings.env"
 MODS_AVAILABLE="${CONF_DIR}/mods-available"
 # SITES_AVAILABLE="${CONF_DIR}/sites-available"
 
-echo "Loading settings from settings.sh."
-. "${SCRIPT_DIR}/settings.sh"
+if [ ! -f "${SETTINGS_CONF}" ]; then
+  echo "Please create a copy of settings-template.env as settings.env and modify it to match your setup."
+  echo "Then run this script again."
+  exit 1
+fi
+
+if [ ! -f "${CLIENTS_CONF}" ]; then
+  echo "Please create a copy of clients-template.conf as clients.conf and modify it to match your setup."
+  echo "Then run this script again."
+  exit 1
+fi
+
+echo "Loading settings from settings.env."
+. "${SETTINGS_CONF}"
 
 echo "Installing the required packages."
 apt-get update
@@ -59,8 +72,8 @@ chown freerad:freerad -R "${CERTS_DIR}"
 chmod 640 "${MODS_AVAILABLE}"/*
 
 echo "Updating settings to FreeRADIUS configs."
-sed -i "s@RADIUS_IP_RANGE@${RADIUS_IP_RANGE}@g" "${CLIENTS_CONF}"
-sed -i "s@RADIUS_SECRET@${RADIUS_SECRET}@g" "${CLIENTS_CONF}"
+# sed -i "s@RADIUS_IP_RANGE@${RADIUS_IP_RANGE}@g" "${CLIENTS_CONF}"
+# sed -i "s@RADIUS_SECRET@${RADIUS_SECRET}@g" "${CLIENTS_CONF}"
 sed -i "s@CERTBOT_DOMAIN@${CERTBOT_DOMAIN}@g" "${MODS_AVAILABLE}/eap"
 sed -i "s@CA_NAME@${CA_NAME}@g" "${MODS_AVAILABLE}/eap"
 
