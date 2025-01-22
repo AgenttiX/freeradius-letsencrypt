@@ -99,10 +99,14 @@ usermod -a -G winbindd_priv freerad
 echo "Reloading system certificates"
 update-ca-certificates
 
-echo "Configuring ufw firewall."
-ufw allow ssh
-ufw allow radius
-ufw enable
+if command -v ufw &> /dev/null; then
+  echo "Configuring ufw firewall."
+  ufw allow ssh
+  ufw allow radius
+  ufw enable
+else
+  echo "UFW was not found. Skipping firewall configuration."
+fi
 
 "${SCRIPT_DIR}/show_certs.sh"
 
