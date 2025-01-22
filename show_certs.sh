@@ -1,5 +1,10 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 set -eu
+
+if [ "${EUID}" -ne 0 ]; then
+   echo "This script should be run as root."
+   exit 1
+fi
 
 CONF_DIR="/etc/freeradius/3.0"
 CERTS_DIR="${CONF_DIR}/certs"
