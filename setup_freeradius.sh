@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -eu
 
 if [ "${EUID}" -ne 0 ]; then
    echo "This script should be run as root."
@@ -12,8 +12,6 @@ CERTS_DIR="${CONF_DIR}/certs"
 CLIENTS_CONF="${CONF_DIR}/clients.conf"
 MODS_AVAILABLE="${CONF_DIR}/mods-available"
 # SITES_AVAILABLE="${CONF_DIR}/sites-available"
-CERT_FILE="${CERTS_DIR}/cert.pem"
-PRIVKEY_FILE="${CERTS_DIR}/privkey.pem"
 
 echo "Loading settings from settings.sh."
 . "${SCRIPT_DIR}/settings.sh"
@@ -93,25 +91,7 @@ ufw allow ssh
 ufw allow radius
 ufw enable
 
-if [ -f "${CERT_FILE}" ]; then
-  echo "Server certificate:"
-  openssl x509 -noout -text -in "${CERT_FILE}"
-  echo "Server certificate fingerprint: (you can verify this on a Windows client with \"netsh wlan show wlanreport\")"
-  openssl x509 -noout -fingerprint -in "${CERT_FILE}"
-  echo "Server certificate modulus: (should match that of the private key)"
-  openssl x509 -modulus -noout -in "${CERT_FILE}" | openssl md5
-else
-  echo "The server certificate was not (yet) found."
-fi
-
-if [ -f "${PRIVKEY_FILE}" ]; then
-  echo "Private key status:"
-  openssl rsa -check -noout -in "${PRIVKEY_FILE}"
-  echo "Private key modulus (should match that of the server certificate):"
-  openssl rsa -modulus -noout -in "${PRIVKEY_FILE}" | openssl md5
-else
-  echo "The private key was not (yet) found."
-fi
+"${SCRIPT_DIR}/show_certs.sh"
 
 if [ "$(grep -c "^\s*check_crl = yes" "${MODS_AVAILABLE}/eap")" -ge 1 ]; then
   echo "CRL seems to be enabled in the eap config. Configuring cron job for CRL updates."
